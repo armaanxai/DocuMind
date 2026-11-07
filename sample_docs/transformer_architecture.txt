@@ -1,0 +1,20 @@
+Title: Attention Is All You Need - Overview & Architectural Notes
+
+1. Introduction
+The Transformer is a novel neural network architecture based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train.
+
+2. Model Architecture
+The Transformer follows an encoder-decoder structure using stacked self-attention and point-wise, fully connected layers for both the encoder and decoder.
+
+Encoder: The encoder is composed of a stack of N = 6 identical layers. Each layer has two sub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, position-wise fully connected feed-forward network. Residual connections are employed around each of the two sub-layers, followed by layer normalization.
+
+Decoder: The decoder is also composed of a stack of N = 6 identical layers. In addition to the two sub-layers in each encoder layer, the decoder inserts a third sub-layer, which performs multi-head attention over the output of the encoder stack. Self-attention sub-layers in the decoder are modified with masking to prevent positions from attending to subsequent positions.
+
+3. Attention Mechanism
+An attention function can be described as mapping a query and a set of key-value pairs to an output, where the query, keys, values, and output are all vectors. The output is computed as a weighted sum of the values, where the weight assigned to each value is computed by a compatibility function of the query with the corresponding key.
+
+Scaled Dot-Product Attention: We compute the dot products of the query with all keys, divide each by square root of d_k, and apply a softmax function to obtain the weights on the values.
+Multi-Head Attention: Instead of performing a single attention function with d_model-dimensional keys, values and queries, we linearly project the queries, keys and values h times with different, learned linear projections to d_k, d_k and d_v dimensions, respectively.
+
+4. Training Metrics & Results
+On the WMT 2014 English-to-German translation task, the big transformer model achieves a BLEU score of 28.4, outperforming the best existing models and ensembles by over 2.0 BLEU. On the WMT 2014 English-to-French translation task, the model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs.
