@@ -1,4 +1,4 @@
-# 🧠 DocuMind AI // Neural Document Intelligence
+# 🧠 DocuMind // Neural Document Intelligence
 
 <p align="center">
   <img src="https://img.shields.io/badge/Architecture-RAG_Pipeline-000000?style=for-the-badge&logo=fastapi&logoColor=00F0FF&borderColor=00F0FF" alt="RAG Architecture" />

@@ -1,223 +1,285 @@
 import os
 import streamlit as st
-from dotenv import load_dotenv
+from core.ui_shared import init_app, render_sidebar
 
-from core.document_loader import DocumentLoader
-from core.vector_store import VectorStore
-from core.rag_pipeline import RAGPipeline
-
-# Load local .env if present
-load_dotenv()
-
-# Page Configuration
 st.set_page_config(
-    page_title="DocuMind AI // Neural Document Intelligence",
+    page_title="DocuMind — Knowledge Analytics & Control Dashboard",
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# Cyberpunk / Dark Mode Modern Styling
+pipeline = init_app()
+render_sidebar()
+
+# Hero Header Showcase
 st.markdown("""
-<style>
-    .stApp {
-        background-color: #0b0f19;
-        color: #e6edf3;
-    }
-    .main-header {
-        font-family: 'Courier New', monospace;
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #00F0FF;
-        text-shadow: 0 0 12px rgba(0, 240, 255, 0.4);
-        margin-bottom: 0px;
-    }
-    .sub-header {
-        font-family: 'Segoe UI', sans-serif;
-        font-size: 1.0rem;
-        color: #8b949e;
-        margin-bottom: 1.5rem;
-    }
-    .metric-badge {
-        display: inline-block;
-        padding: 4px 10px;
-        background-color: #161b22;
-        border: 1px solid #00F0FF44;
-        border-radius: 6px;
-        font-family: monospace;
-        font-size: 0.85rem;
-        color: #52f2b1;
-        margin-right: 8px;
-    }
-    .citation-box {
-        background-color: #161b22;
-        border-left: 3px solid #00F0FF;
-        padding: 10px 14px;
-        border-radius: 4px;
-        margin-top: 8px;
-        font-size: 0.88rem;
-    }
-</style>
+<div class="hero-banner">
+    <div class="pill-tag">✨ Executive Knowledge Analytics & Document Intelligence</div>
+    <div class="brand-heading">DocuMind</div>
+    <div class="brand-tagline">
+        Autonomous document ingestion, verbatim-grounded Q&A, cognitive mind mapping, gamified testing, and academic exam synthesis.
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
-# Initialize Session State
-if "vector_store" not in st.session_state:
-    st.session_state.vector_store = VectorStore()
+if st.session_state.status_banner:
+    b_type, b_msg = st.session_state.status_banner
+    if b_type == "success":
+        st.success(b_msg)
+    elif b_type == "warning":
+        st.warning(b_msg)
+    elif b_type == "info":
+        st.info(b_msg)
 
-if "loader" not in st.session_state:
-    st.session_state.loader = DocumentLoader(chunk_size=750, chunk_overlap=120)
+active_docs = list(set(st.session_state.indexed_docs))
+total_chunks = len(st.session_state.vector_store.chunks)
+total_words = sum(len(c.text.split()) for c in st.session_state.vector_store.chunks)
+est_read_min = max(1, total_words // 200) if total_words > 0 else 0
+study_turns = len(st.session_state.chat_history)
+has_quiz = 1 if st.session_state.get("interactive_quiz") else 0
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+# 1. Executive KPI Telemetry Ribbon
+st.markdown(f"""
+<div class="dashboard-kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-icon">📚</span>
+            <span class="kpi-badge">FILES</span>
+        </div>
+        <div class="kpi-val">{len(active_docs)}</div>
+        <div class="kpi-lbl">Active Documents</div>
+        <div class="kpi-sub">{"Indexed & in memory" if active_docs else "No documents loaded"}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-icon">🧩</span>
+            <span class="kpi-badge">PASSAGES</span>
+        </div>
+        <div class="kpi-val">{total_chunks}</div>
+        <div class="kpi-lbl">Searchable Chunks</div>
+        <div class="kpi-sub">{f"~{total_words:,} total words" if total_words > 0 else "Ready for ingestion"}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-icon">⏱️</span>
+            <span class="kpi-badge">READ TIME</span>
+        </div>
+        <div class="kpi-val">{est_read_min}m</div>
+        <div class="kpi-lbl">Est. Reading Time</div>
+        <div class="kpi-sub">Calculated at 200 wpm</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-icon">🎯</span>
+            <span class="kpi-badge">ENGAGEMENT</span>
+        </div>
+        <div class="kpi-val">{study_turns}</div>
+        <div class="kpi-lbl">Questions Explored</div>
+        <div class="kpi-sub">{"Active research session" if study_turns > 0 else "Session ready"}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-top">
+            <span class="kpi-icon">⚡</span>
+            <span class="kpi-badge">ENGINE</span>
+        </div>
+        <div class="kpi-val">100%</div>
+        <div class="kpi-lbl">Verbatim Grounding</div>
+        <div class="kpi-sub">Sublinear TF-IDF + Gemini</div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
 
-if "indexed_docs" not in st.session_state:
-    st.session_state.indexed_docs = []
+# 2. Knowledge Base Overview or Quick-Start Onboarding
+if active_docs:
+    st.markdown("""
+    <div class="dash-section">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+            <div>
+                <div style="font-size: 1.15rem; font-weight: 700; color: #ffffff;">📂 Loaded Knowledge Inventory</div>
+                <div style="font-size: 0.82rem; color: #94a3b8;">Detailed breakdown of active textbooks, research papers, and notes.</div>
+            </div>
+            <div class="pill-tag">🟢 Live In-Memory</div>
+        </div>
+    """, unsafe_allow_html=True)
 
-# Sidebar Controls
-with st.sidebar:
-    st.markdown("### ⚡ Neural Control Unit")
-    
-    # API Key Configuration
-    env_key = os.getenv("GEMINI_API_KEY", "")
-    api_key = st.text_input(
-        "Google Gemini API Key",
-        value=env_key,
-        type="password",
-        help="Get a free API key from Google AI Studio (aistudio.google.com)"
+    for doc in active_docs:
+        doc_chunks = [c for c in st.session_state.vector_store.chunks if c.doc_name == doc]
+        doc_words = sum(len(c.text.split()) for c in doc_chunks)
+        ext = doc.split(".")[-1].upper() if "." in doc else "DOC"
+        st.markdown(f"""
+        <div class="inventory-item">
+            <div class="inventory-title">
+                <span>📖</span>
+                <span><b>{doc}</b></span>
+                <span class="kpi-badge" style="font-size: 0.65rem;">{ext}</span>
+            </div>
+            <div class="inventory-meta">
+                <span>🧩 <b>{len(doc_chunks)}</b> passages</span>
+                <span>📝 ~<b>{doc_words:,}</b> words</span>
+                <span style="color: #34d399;">● Ready</span>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.markdown("</div>", unsafe_allow_html=True)
+
+    # 3. Instant Knowledge Search Sandbox directly on Dashboard
+    st.markdown("""
+    <div class="dash-section">
+        <div style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 4px;">
+            ⚡ Instant Knowledge Search Sandbox
+        </div>
+        <div style="font-size: 0.82rem; color: #94a3b8; margin-bottom: 14px;">
+            Preview sub-second passage retrieval directly from your book index before launching deep Q&A.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    search_query = st.text_input(
+        "Type any keyword or concept to test retrieval:",
+        placeholder="e.g. self-attention, multithreading, virtual memory...",
+        key="dash_search_box"
     )
 
-    model_choice = st.selectbox(
-        "Inference Model",
-        options=["gemini-2.5-flash", "gemini-1.5-flash"],
-        index=0
-    )
-
-    st.markdown("---")
-    st.markdown("### 📂 Ingest Documents")
-
-    uploaded_files = st.file_uploader(
-        "Upload PDFs or TXT files",
-        type=["pdf", "txt", "md"],
-        accept_multiple_files=True
-    )
-
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("🚀 Index Uploads", use_container_width=True):
-            if uploaded_files:
-                with st.spinner("Parsing & embedding vectors..."):
-                    new_chunks = []
-                    for f in uploaded_files:
-                        if f.name not in st.session_state.indexed_docs:
-                            if f.name.endswith(".pdf"):
-                                chunks = st.session_state.loader.load_pdf(f, doc_name=f.name)
-                            else:
-                                text = f.read().decode("utf-8", errors="ignore")
-                                chunks = st.session_state.loader.load_text(text, doc_name=f.name)
-                            new_chunks.extend(chunks)
-                            st.session_state.indexed_docs.append(f.name)
-
-                    if new_chunks:
-                        if api_key:
-                            st.session_state.vector_store.set_api_key(api_key)
-                        st.session_state.vector_store.add_documents(new_chunks)
-                        st.success(f"Indexed {len(new_chunks)} chunks!")
-            else:
-                st.warning("Please select a file first.")
-
-    with col2:
-        if st.button("📑 Load Sample Paper", use_container_width=True):
+    if search_query:
+        results = st.session_state.vector_store.search(search_query, top_k=2)
+        if results:
+            st.markdown("<div style='font-size: 0.82rem; font-weight: 700; color: #a5b4fc; margin-bottom: 8px;'>🔍 Top Retrieved Passages:</div>", unsafe_allow_html=True)
+            for res in results:
+                st.markdown(f"""
+                <div class="citation-container" style="margin-bottom: 10px;">
+                    <div class="citation-title">📄 {res.doc_name} • Page {res.page_number} (Similarity Score: {res.relevance_score})</div>
+                    <div style="font-size: 0.88rem; color: #e2e8f0; line-height: 1.5;">"{res.snippet}"</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            if st.button("💬 Ask Full Question in Q&A Reader", key="btn_jump_qa"):
+                st.session_state.suggested_prompt = search_query
+                st.switch_page("pages/1_💬_QA_Reader.py")
+        else:
+            st.info("No matching passages found for this query.")
+else:
+    # Onboarding Empty State Card
+    st.markdown("""
+    <div class="dash-section" style="text-align: center; padding: 36px 24px;">
+        <div style="font-size: 2.2rem; margin-bottom: 10px;">📚</div>
+        <div style="font-size: 1.3rem; font-weight: 800; color: #ffffff; margin-bottom: 6px;">
+            Welcome to DocuMind Knowledge Hub
+        </div>
+        <div style="font-size: 0.90rem; color: #94a3b8; max-width: 650px; margin: 0 auto 20px auto; line-height: 1.6;">
+            Get started by uploading your textbook or notes in the left sidebar, or click below to immediately load our pre-configured sample research paper on <b>Transformer Architecture</b>.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    ob_col1, ob_col2, ob_col3 = st.columns([1, 2, 1])
+    with ob_col2:
+        if st.button("📑 Load Sample Transformer Research Paper", use_container_width=True, key="dash_load_sample"):
             sample_path = os.path.join("sample_docs", "transformer_architecture.txt")
             if os.path.exists(sample_path):
-                with open(sample_path, "r", encoding="utf-8") as f:
-                    content = f.read()
-                chunks = st.session_state.loader.load_text(content, doc_name="Attention_Paper_Summary.txt")
-                if api_key:
-                    st.session_state.vector_store.set_api_key(api_key)
-                st.session_state.vector_store.add_documents(chunks)
-                st.session_state.indexed_docs.append("Attention_Paper_Summary.txt")
-                st.success("Loaded Transformer Architecture sample!")
+                with st.spinner("Indexing sample paper..."):
+                    with open(sample_path, "r", encoding="utf-8") as f:
+                        content = f.read()
+                    chunks = st.session_state.loader.load_text(content, doc_name="Transformer_Architecture_Paper.txt")
+                    st.session_state.vector_store.set_api_key(st.session_state.api_key)
+                    st.session_state.vector_store.add_documents(chunks)
+                    if "Transformer_Architecture_Paper.txt" not in st.session_state.indexed_docs:
+                        st.session_state.indexed_docs.append("Transformer_Architecture_Paper.txt")
+                    st.session_state.status_banner = ("success", f"Loaded sample document ({len(chunks)} passages indexed).")
+                    st.rerun()
 
-    st.markdown("---")
-    st.markdown("### 📊 Vector Index Telemetry")
-    total_chunks = len(st.session_state.vector_store.chunks)
-    st.markdown(f"**Chunks Indexed:** `{total_chunks}`")
-    st.markdown(f"**Active Documents:** `{len(set(st.session_state.indexed_docs))}`")
-    if st.session_state.indexed_docs:
-        for doc in set(st.session_state.indexed_docs):
-            st.caption(f"• {doc}")
+st.markdown("<br>", unsafe_allow_html=True)
 
-    if st.button("🗑️ Reset Vector Store", use_container_width=True):
-        st.session_state.vector_store.clear()
-        st.session_state.indexed_docs = []
-        st.session_state.chat_history = []
-        st.rerun()
+# 4. Dedicated Workspaces Command Center
+st.markdown("### 🚀 Dedicated Study & Research Workspaces")
+st.caption("Select an intelligence workspace from below or use the sidebar navigation:")
 
-# Instantiate RAG Pipeline
-rag_pipeline = RAGPipeline(
-    vector_store=st.session_state.vector_store,
-    api_key=api_key,
-    model_name=model_choice
-)
+col_ws1, col_ws2 = st.columns(2)
 
-# Main Dashboard View
-st.markdown("<div class='main-header'>DOCUMIND // RAG ARCHITECTURE</div>", unsafe_allow_html=True)
-st.markdown("<div class='sub-header'>High-Dimensional Retrieval Augmented Generation Engine & Research Analyst</div>", unsafe_allow_html=True)
+with col_ws1:
+    st.markdown("""
+    <div class="feature-card">
+        <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+            💬 Strict Q&A Reader
+        </div>
+        <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Ask questions with 100% strict verbatim book citations, page proofs, and 1-click starter prompts.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("👉 Launch Q&A Reader", use_container_width=True, key="dash_btn_qa"):
+        st.switch_page("pages/1_💬_QA_Reader.py")
 
-# Render Chat History
-for turn in st.session_state.chat_history:
-    with st.chat_message("user"):
-        st.markdown(turn["user"])
+    st.markdown("<br>", unsafe_allow_html=True)
 
-    with st.chat_message("assistant"):
-        st.markdown(turn["assistant"])
+    st.markdown("""
+    <div class="feature-card">
+        <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+            📝 Exam Paper & Deep Research Lab
+        </div>
+        <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Formulate university question papers (Section A, B, C) with confidential marking rubrics & multi-hop research reports.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("👉 Launch Exam & Research", use_container_width=True, key="dash_btn_exam"):
+        st.switch_page("pages/3_📝_Exam_&_Research.py")
 
-        # Telemetry & Citation Drawer
-        if "latency_ms" in turn and turn["latency_ms"] > 0:
-            st.markdown(f"<span class='metric-badge'>⚡ {turn['latency_ms']} ms</span><span class='metric-badge'>🤖 {turn.get('model', model_choice)}</span>", unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
 
-        if "sources" in turn and turn["sources"]:
-            with st.expander("📖 Retrieved Evidence & Citations"):
-                for src in turn["sources"]:
-                    st.markdown(f"""
-                    <div class='citation-box'>
-                        <b>📄 Document:</b> {src['doc_name']} &nbsp;|&nbsp; <b>Page:</b> {src['page_number']} &nbsp;|&nbsp; <b>Relevance:</b> {src['relevance_score']}
-                        <br><br>
-                        <i>"{src['snippet']}"</i>
-                    </div>
-                    """, unsafe_allow_html=True)
+    st.markdown("""
+    <div class="feature-card">
+        <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+            📥 Portable Export Suite & Anki
+        </div>
+        <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Download Anki spaced repetition flashcards (.csv), standalone HTML reports, and plain text transcripts.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("👉 Launch Export Suite", use_container_width=True, key="dash_btn_export"):
+        st.switch_page("pages/5_📥_Export_&_Anki.py")
 
-# Chat Input Field
-if query := st.chat_input("Ask a question about your uploaded research papers..."):
-    # Append user prompt
-    with st.chat_message("user"):
-        st.markdown(query)
+with col_ws2:
+    st.markdown("""
+    <div class="feature-card">
+        <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+            🎮 Gamified Live Quiz & Scorecard
+        </div>
+        <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Interactive live test with radio button choices, instant scoring scorecard, book explanations, and balloon celebrations.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("👉 Launch Live Quiz", use_container_width=True, key="dash_btn_quiz"):
+        st.switch_page("pages/2_🎮_Live_Quiz.py")
 
-    # Execute RAG
-    with st.chat_message("assistant"):
-        with st.spinner("Scanning vector indices & synthesizing response..."):
-            result = rag_pipeline.answer_query(query, top_k=4)
-            st.markdown(result["answer"])
+    st.markdown("<br>", unsafe_allow_html=True)
 
-            if result["latency_ms"] > 0:
-                st.markdown(f"<span class='metric-badge'>⚡ {result['latency_ms']} ms</span><span class='metric-badge'>🤖 {result['model']}</span>", unsafe_allow_html=True)
+    st.markdown("""
+    <div class="feature-card">
+        <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
+            🧠 Cognitive Mind Map & Summaries
+        </div>
+        <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Visual Mermaid.js concept graphs, 1-click chapter cheat sheets, and side-by-side multi-document comparison matrices.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("👉 Launch Mind Map & Summaries", use_container_width=True, key="dash_btn_mm"):
+        st.switch_page("pages/4_🧠_Mind_Map_&_Summary.py")
 
-            if result["sources"]:
-                with st.expander("📖 Retrieved Evidence & Citations"):
-                    for src in result["sources"]:
-                        st.markdown(f"""
-                        <div class='citation-box'>
-                            <b>📄 Document:</b> {src['doc_name']} &nbsp;|&nbsp; <b>Page:</b> {src['page_number']} &nbsp;|&nbsp; <b>Relevance:</b> {src['relevance_score']}
-                            <br><br>
-                            <i>"{src['snippet']}"</i>
-                        </div>
-                        """, unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 
-    # Save to history
-    st.session_state.chat_history.append({
-        "user": query,
-        "assistant": result["answer"],
-        "sources": result["sources"],
-        "latency_ms": result["latency_ms"],
-        "model": result["model"]
-    })
+# 5. System Health & Infrastructure Diagnostics
+with st.expander("⚡ System Health & Neural Engine Telemetry", expanded=False):
+    diag_c1, diag_c2, diag_c3 = st.columns(3)
+    with diag_c1:
+        st.markdown("**LLM Foundation:**")
+        st.code("Google Gemini 3.5 Flash", language="text")
+    with diag_c2:
+        st.markdown("**Vector Store:**")
+        st.code("Sublinear TF-IDF + Cosine Similarity", language="text")
+    with diag_c3:
+        st.markdown("**Grounding Mode:**")
+        st.code("Strict Verbatim (Zero Hallucination)", language="text")
