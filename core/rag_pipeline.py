@@ -2,7 +2,7 @@ import time
 import json
 import re
 import requests
-from typing import List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple, Generator
 from .vector_store import VectorStore
 from .document_loader import DocumentChunk
 
@@ -38,6 +38,30 @@ MANDATORY RULES:
    - 📍 **Source Citation:** [Document Name, Page Number]
 4. Maintain a formal, academic, and 100% faithful tone.
 """
+
+PERSONA_PROMPTS = {
+    "Professor": STRICT_BOOK_SYSTEM_PROMPT,
+    "Feynman": """You are DocuMind in 'Feynman Explainer' mode.
+Your goal is to break down complex concepts into intuitive, unforgettable explanations using simple everyday analogies while remaining 100% faithful to the provided book excerpts.
+Rules:
+1. Use an intuitive analogy to make the core idea click immediately.
+2. Quote exact source lines inside quotation marks to ground your explanation.
+3. Keep definitions precise, avoiding unnecessary academic jargon where simple words work better.
+4. Always cite [Document Name, Page Number].""",
+    "Exam Cram": """You are DocuMind in 'Exam Cram Coach' mode.
+Your mission is to maximize rapid exam score gain for an upcoming test on this material.
+Rules:
+1. Deliver high-yield bullet points and key formulas in bold.
+2. Highlight 'Common Exam Traps / Pitfalls' that professors often test on.
+3. Provide memory mnemonics where helpful.
+4. Quote verbatim lines and cite [Document Name, Page Number].""",
+    "Analyst": """You are DocuMind in 'Executive & Technical Analyst' mode.
+Provide strategic high-level synthesis tailored for software architects, researchers, and technical leaders.
+Rules:
+1. Focus on architecture trade-offs, system constraints, scalability, and benchmarks.
+2. Format key comparisons as structured markdown lists or tables.
+3. Cite exact page numbers and verbatim quotes."""
+}
 
 class RAGPipeline:
     def __init__(
@@ -191,7 +215,6 @@ class RAGPipeline:
                 except Exception as e:
                     return f"Error executing generation with {self.provider.upper()}: {str(e)}"
             else:
-                # Direct HTTP REST fallback via requests
                 try:
                     headers = {
                         "Authorization": f"Bearer {self.api_key}",
@@ -251,6 +274,61 @@ class RAGPipeline:
 
         return "⚠️ Unknown provider or unconfigured LLM engine."
 
+    def _stream_llm(self, prompt: str, system_instruction: str = "", temperature: float = 0.2) -> Generator[str, None, None]:
+        """Universal real-time streaming token generator for typewriter UX."""
+        if not self.api_key:
+            yield "⚠️ API Key is missing. Please enter your API key to activate DocuMind."
+            return
+
+        # 1. OpenAI-compatible / Groq / OpenRouter / DeepSeek / Custom
+        if self.provider in ["groq", "openai", "openrouter", "deepseek", "custom"]:
+            if self.openai_client:
+                try:
+                    messages = []
+                    if system_instruction:
+                        messages.append({"role": "system", "content": system_instruction})
+                    messages.append({"role": "user", "content": prompt})
+
+                    stream = self.openai_client.chat.completions.create(
+                        model=self.model_name,
+                        messages=messages,
+                        temperature=temperature,
+                        stream=True
+                    )
+                    for chunk in stream:
+                        if chunk.choices and chunk.choices[0].delta.content:
+                            yield chunk.choices[0].delta.content
+                    return
+                except Exception:
+                    pass
+
+        # 2. Gemini Streaming
+        elif self.provider == "gemini":
+            if HAS_NEW_GENAI and self.client:
+                try:
+                    config_kwargs = {"temperature": temperature}
+                    if system_instruction:
+                        config_kwargs["system_instruction"] = system_instruction
+
+                    response = self.client.models.generate_content_stream(
+                        model=self.model_name,
+                        contents=prompt,
+                        config=types.GenerateContentConfig(**config_kwargs)
+                    )
+                    for chunk in response:
+                        if chunk.text:
+                            yield chunk.text
+                    return
+                except Exception:
+                    pass
+
+        # Graceful fallback: non-streaming call yielded word-by-word
+        full_text = self._call_llm(prompt, system_instruction, temperature)
+        words = full_text.split(" ")
+        for i, word in enumerate(words):
+            yield word + (" " if i < len(words) - 1 else "")
+            time.sleep(0.012)
+
     # Backward compatibility alias
     _call_gemini = _call_llm
 
@@ -272,18 +350,22 @@ class RAGPipeline:
             for c in chunks_to_use
         ])
 
-    def answer_query(self, query: str, top_k: int = 5) -> Dict[str, Any]:
-        """Strict verbatim grounded Q&A."""
-        start_time = time.time()
-        retrieved_results = self.vector_store.similarity_search(query, top_k=top_k)
+    def get_document_pages(self, doc_name: str) -> Dict[int, str]:
+        """Returns all text passages grouped by page number for document split-viewer."""
+        pages = {}
+        for chunk in self.vector_store.chunks:
+            if chunk.doc_name == doc_name:
+                p = chunk.page_number
+                if p not in pages:
+                    pages[p] = []
+                pages[p].append(chunk.text)
+        return {p: "\n\n".join(texts) for p, texts in sorted(pages.items())}
 
+    def get_retrieval_context(self, query: str, top_k: int = 5) -> Tuple[str, List[Dict[str, Any]]]:
+        """Retrieves relevant chunks and prepares formatted context and source citations."""
+        retrieved_results = self.vector_store.similarity_search(query, top_k=top_k)
         if not retrieved_results:
-            return {
-                "answer": "⚠️ No documents are currently loaded. Please upload a PDF book or click 'Load Sample'.",
-                "sources": [],
-                "latency_ms": 0,
-                "model": self.model_name
-            }
+            return "", []
 
         context_blocks = []
         sources = []
@@ -305,10 +387,25 @@ User Query:
 {query}
 
 Formulate the answer strictly quoting the exact book wording above:"""
+        return user_content, sources
 
-        answer_text = self._call_gemini(
+    def answer_query(self, query: str, top_k: int = 5, persona: str = "Professor") -> Dict[str, Any]:
+        """Strict verbatim grounded Q&A with persona selection."""
+        start_time = time.time()
+        user_content, sources = self.get_retrieval_context(query, top_k=top_k)
+
+        if not user_content:
+            return {
+                "answer": "⚠️ No documents are currently loaded. Please upload a PDF book or click 'Load Sample'.",
+                "sources": [],
+                "latency_ms": 0,
+                "model": self.model_name
+            }
+
+        sys_prompt = PERSONA_PROMPTS.get(persona, STRICT_BOOK_SYSTEM_PROMPT)
+        answer_text = self._call_llm(
             prompt=user_content,
-            system_instruction=STRICT_BOOK_SYSTEM_PROMPT,
+            system_instruction=sys_prompt,
             temperature=0.1
         )
         latency_ms = int((time.time() - start_time) * 1000)
@@ -319,6 +416,45 @@ Formulate the answer strictly quoting the exact book wording above:"""
             "latency_ms": latency_ms,
             "model": self.model_name
         }
+
+    def stream_answer_query(self, query: str, top_k: int = 5, persona: str = "Professor") -> Tuple[Generator[str, None, None], List[Dict[str, Any]]]:
+        """Streams real-time token generator and returns accompanied source citations."""
+        user_content, sources = self.get_retrieval_context(query, top_k=top_k)
+        if not user_content:
+            def empty_gen():
+                yield "⚠️ No documents are currently loaded. Please upload a PDF book or click 'Load Sample'."
+            return empty_gen(), []
+
+        sys_prompt = PERSONA_PROMPTS.get(persona, STRICT_BOOK_SYSTEM_PROMPT)
+        stream_gen = self._stream_llm(
+            prompt=user_content,
+            system_instruction=sys_prompt,
+            temperature=0.1
+        )
+        return stream_gen, sources
+
+    def generate_followup_questions(self, query: str, answer: str) -> List[str]:
+        """Generates 3 contextual suggested questions for interactive exploration."""
+        prompt = f"""Context Query: "{query}"
+Answer given: "{answer[:350]}..."
+
+Generate exactly 3 short, high-value follow-up questions that the user might want to explore next based on the document.
+Output strictly as a valid JSON array of 3 strings: ["Question 1?", "Question 2?", "Question 3?"] with no extra text."""
+        try:
+            raw = self._call_llm(prompt, temperature=0.3)
+            match = re.search(r'\[\s*".*"\s*\]', raw, re.DOTALL)
+            if match:
+                items = json.loads(match.group(0))
+                if isinstance(items, list) and len(items) >= 2:
+                    return [str(q).strip().replace('"', '') for q in items[:3]]
+        except Exception:
+            pass
+
+        return [
+            f"What are the main real-world applications of {query.split()[-1]}?",
+            "What critical edge cases or limitations are mentioned?",
+            "How does this connect to other core chapters in the book?"
+        ]
 
     def generate_summary(self, topic: str = "") -> Dict[str, Any]:
         """Feature 1: 1-Click Executive Summary & Cheat Sheet."""
@@ -339,7 +475,7 @@ Task: Generate a high-yield Executive Summary & Revision Cheat Sheet:
 4. ⚡ **Key Takeaways & Formulae** (Essential points to remember for exams)
 Strictly ground everything in the text above. Cite [Page numbers]."""
 
-        result = self._call_gemini(prompt, temperature=0.2)
+        result = self._call_llm(prompt, temperature=0.2)
         return {"content": result, "latency_ms": int((time.time() - start_time) * 1000)}
 
     def generate_interactive_quiz(self, topic: str = "", count: int = 4) -> List[Dict[str, Any]]:
@@ -364,7 +500,7 @@ Output ONLY a valid JSON list matching this structure:
 ]
 Do not include any conversational preamble or text outside the JSON array."""
 
-        raw = self._call_gemini(prompt, temperature=0.1)
+        raw = self._call_llm(prompt, temperature=0.1)
         cleaned = re.sub(r'```json\s*', '', raw)
         cleaned = re.sub(r'```', '', cleaned).strip()
 
@@ -411,7 +547,7 @@ Rules:
 - Keep node labels short (2-4 words) and wrap them in quotes, e.g. Node1["Multi-threading"].
 - Output ONLY the mermaid diagram starting with `graph TD`. No extra markdown explanation."""
 
-        raw = self._call_gemini(prompt, temperature=0.2)
+        raw = self._call_llm(prompt, temperature=0.2)
         cleaned = re.sub(r'```mermaid\s*', '', raw)
         cleaned = re.sub(r'```', '', cleaned).strip()
 
@@ -447,7 +583,7 @@ Task: Generate a thorough Multi-Document Cross-Comparison Analysis:
 4. 🏆 **Verdict & Recommendations** (When to apply which concept).
 Strictly cite [Document Name, Page Number]."""
 
-        result = self._call_gemini(prompt, temperature=0.2)
+        result = self._call_llm(prompt, temperature=0.2)
         return {"content": result, "latency_ms": int((time.time() - start_time) * 1000)}
 
     def generate_exam_paper(self, topic: str = "", difficulty: str = "Standard") -> Dict[str, Any]:
@@ -472,7 +608,7 @@ Task: Create a professional Academic Question Paper:
 ### 🗝️ Confidential Answer Key & Grading Rubric:
 Provide the exact verbatim book answer, marking breakdown, and page citations for every question."""
 
-        result = self._call_gemini(prompt, temperature=0.2)
+        result = self._call_llm(prompt, temperature=0.2)
         return {"content": result, "latency_ms": int((time.time() - start_time) * 1000)}
 
     def generate_research_dossier(self, topic: str = "") -> Dict[str, Any]:
@@ -496,7 +632,7 @@ Task: Formulate a comprehensive, publication-grade Academic Research Dossier:
 6. **Academic References & Page Citations**
 Ground strictly in the provided text without hallucination."""
 
-        result = self._call_gemini(prompt, temperature=0.2)
+        result = self._call_llm(prompt, temperature=0.2)
         return {"content": result, "latency_ms": int((time.time() - start_time) * 1000)}
 
     def generate_anki_csv(self, topic: str = "", count: int = 8) -> str:
@@ -515,7 +651,7 @@ Output format: Semicolon-separated CSV (`Front;Back;Source`).
 - Source: Page number.
 Output ONLY the CSV lines. No header, no markdown fences."""
 
-        raw = self._call_gemini(prompt, temperature=0.1)
+        raw = self._call_llm(prompt, temperature=0.1)
         cleaned = re.sub(r'```csv\s*', '', raw)
         cleaned = re.sub(r'```', '', cleaned).strip()
         lines = [line.strip() for line in cleaned.splitlines() if line.strip()]

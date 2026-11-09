@@ -3,7 +3,7 @@
     "total": 11,
     "passed": 11,
     "failed": 0,
-    "duration_seconds": 34.82
+    "duration_seconds": 417.18
   },
   "results": [
     {
@@ -18,7 +18,7 @@
       "feature_num": 2,
       "name": "Vector Store Search & TF-IDF Retrieval",
       "status": "PASS",
-      "latency_ms": 17,
+      "latency_ms": 15,
       "details": "Successfully indexed 13 chunks, verified cosine similarity & keyword boosting on exact matches, verified clear() operation.",
       "error": null
     },
@@ -26,7 +26,7 @@
       "feature_num": 3,
       "name": "Strict Verbatim Q&A (answer_query & query alias)",
       "status": "PASS",
-      "latency_ms": 4254,
+      "latency_ms": 18543,
       "details": "Grounding verified: correctly cited '28.4' BLEU score and 'N=6' layers with source page citations; tested empty library handling.",
       "error": null
     },
@@ -34,7 +34,7 @@
       "feature_num": 4,
       "name": "Gamified Live Quiz (generate_interactive_quiz & scoring)",
       "status": "PASS",
-      "latency_ms": 1755,
+      "latency_ms": 17899,
       "details": "Generated 3 questions, validated JSON schema (4 choices, valid correct_index, explanation, page number), verified grading logic.",
       "error": null
     },
@@ -42,7 +42,7 @@
       "feature_num": 5,
       "name": "Exam Paper Generation (generate_exam_paper)",
       "status": "PASS",
-      "latency_ms": 4209,
+      "latency_ms": 55596,
       "details": "Generated university examination paper with Section A (Objective), Section B (Analytical), Section C (Case Study) and confidential Answer Key.",
       "error": null
     },
@@ -50,7 +50,7 @@
       "feature_num": 6,
       "name": "Deep Research Dossier (generate_research_dossier & alias)",
       "status": "PASS",
-      "latency_ms": 9493,
+      "latency_ms": 207498,
       "details": "Synthesized comprehensive academic research dossier with abstract, theoretical foundation, architecture breakdown, and references.",
       "error": null
     },
@@ -58,7 +58,7 @@
       "feature_num": 7,
       "name": "Mind Map Generation (generate_mind_map & alias)",
       "status": "PASS",
-      "latency_ms": 2984,
+      "latency_ms": 44640,
       "details": "Generated valid Mermaid.js graph starting with 'graph TD' with proper node relationships and hierarchy.",
       "error": null
     },
@@ -66,7 +66,7 @@
       "feature_num": 8,
       "name": "Chapter Cheat Sheet (generate_summary & alias)",
       "status": "PASS",
-      "latency_ms": 6143,
+      "latency_ms": 48791,
       "details": "Generated high-yield revision cheat sheet with executive overview, core definitions, and key takeaways.",
       "error": null
     },
@@ -74,7 +74,7 @@
       "feature_num": 9,
       "name": "Cross-Document Comparison (compare_documents)",
       "status": "PASS",
-      "latency_ms": 3991,
+      "latency_ms": 16854,
       "details": "Successfully compared multiple documents in library ('Transformer' vs 'RNN'), synthesized side-by-side markdown table and agreement/contrast points.",
       "error": null
     },
@@ -82,7 +82,7 @@
       "feature_num": 10,
       "name": "Anki Spaced Repetition CSV Export (generate_anki_csv)",
       "status": "PASS",
-      "latency_ms": 1174,
+      "latency_ms": 6638,
       "details": "Generated 4 active recall flashcards in valid semicolon-separated CSV format compatible with Anki and Excel.",
       "error": null
     },

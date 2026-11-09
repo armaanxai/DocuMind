@@ -200,10 +200,10 @@ with col_ws1:
     st.markdown("""
     <div class="feature-card">
         <div style="font-size: 1.25rem; font-weight: 700; color: #a5b4fc; margin-bottom: 4px;">
-            💬 Strict Q&A Reader
+            💬 Strict Q&A Reader & Split Viewer
         </div>
         <div style="color: #94a3b8; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
-            Ask questions with 100% strict verbatim book citations, page proofs, and 1-click starter prompts.
+            Typewriter streaming, synchronized split-page book browsing, in-browser speech playback, and 4 teaching personas (Professor, Feynman, Cram Coach, Analyst).
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -273,13 +273,16 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # 5. System Health & Infrastructure Diagnostics
 with st.expander("⚡ System Health & Neural Engine Telemetry", expanded=False):
-    diag_c1, diag_c2, diag_c3 = st.columns(3)
+    diag_c1, diag_c2, diag_c3, diag_c4 = st.columns(4)
     with diag_c1:
-        st.markdown("**LLM Foundation:**")
-        st.code("Google Gemini 3.5 Flash", language="text")
+        st.markdown("**LLM Engine:**")
+        st.code(f"{pipeline.provider.upper()} ({pipeline.model_name})", language="text")
     with diag_c2:
-        st.markdown("**Vector Store:**")
-        st.code("Sublinear TF-IDF + Cosine Similarity", language="text")
+        st.markdown("**Response Streaming:**")
+        st.code("Typewriter Generator Active", language="text")
     with diag_c3:
-        st.markdown("**Grounding Mode:**")
-        st.code("Strict Verbatim (Zero Hallucination)", language="text")
+        st.markdown("**Voice Synthesis:**")
+        st.code("Web Speech Synthesis API", language="text")
+    with diag_c4:
+        st.markdown("**Vector Store:**")
+        st.code("Sublinear TF-IDF (Offline)", language="text")

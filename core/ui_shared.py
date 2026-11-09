@@ -391,109 +391,172 @@ SHARED_CSS = """
     }
 
     /* Glass File Uploader & Dropzone */
-    div[data-testid="stFileUploader"] {
+    div[data-testid="stFileUploader"],
+    [data-testid="stFileUploader"] {
         background: transparent !important;
         border: none !important;
         padding: 0 !important;
+        margin-bottom: 14px !important;
     }
-    div[data-testid="stFileUploader"] label {
+    div[data-testid="stFileUploader"] label,
+    [data-testid="stFileUploader"] label {
         color: #a5b4fc !important;
         font-size: 0.82rem !important;
         font-weight: 700 !important;
-        letter-spacing: 0.04em !important;
+        letter-spacing: 0.05em !important;
         text-transform: uppercase !important;
         margin-bottom: 8px !important;
+        display: block !important;
     }
-    div[data-testid="stFileUploadDropzone"] {
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(99, 102, 241, 0.10) 100%) !important;
-        backdrop-filter: blur(18px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
+    /* Targets all possible Dropzone containers across Streamlit versions */
+    [data-testid="stFileUploaderDropzone"],
+    [data-testid="stFileUploadDropzone"],
+    section[data-testid="stFileUploaderDropzone"],
+    div[data-testid="stFileUploader"] section,
+    div[data-testid="stFileUploader"] > section,
+    div[data-testid="stFileUploader"] > div > section {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(99, 102, 241, 0.12) 100%) !important;
+        backdrop-filter: blur(20px) saturate(190%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
         border: 1.5px dashed rgba(165, 180, 252, 0.45) !important;
         border-radius: 16px !important;
         padding: 20px 14px !important;
-        box-shadow: 0 8px 24px -6px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
-        transition: all 0.25s ease !important;
+        box-shadow: 0 10px 28px -6px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.18) !important;
+        transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1) !important;
         text-align: center !important;
     }
-    div[data-testid="stFileUploadDropzone"]:hover {
+    [data-testid="stFileUploaderDropzone"]:hover,
+    [data-testid="stFileUploadDropzone"]:hover,
+    section[data-testid="stFileUploaderDropzone"]:hover,
+    div[data-testid="stFileUploader"] section:hover {
         border-color: #818cf8 !important;
-        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(99, 102, 241, 0.18) 100%) !important;
-        box-shadow: 0 12px 30px -4px rgba(99, 102, 241, 0.4), inset 0 1px 2px rgba(255, 255, 255, 0.25) !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(99, 102, 241, 0.22) 100%) !important;
+        box-shadow: 0 14px 34px -4px rgba(99, 102, 241, 0.5), inset 0 1px 2px rgba(255, 255, 255, 0.3) !important;
+        transform: translateY(-2px) !important;
     }
-    div[data-testid="stFileUploadDropzone"] button {
+    /* Dropzone Upload Button */
+    [data-testid="stFileUploaderDropzone"] button,
+    [data-testid="stFileUploadDropzone"] button,
+    div[data-testid="stFileUploader"] section button,
+    div[data-testid="stFileUploader"] button {
         background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
         color: #ffffff !important;
-        border: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border: 1px solid rgba(255, 255, 255, 0.35) !important;
         border-radius: 10px !important;
-        padding: 7px 18px !important;
-        font-size: 0.86rem !important;
+        padding: 8px 20px !important;
+        font-size: 0.88rem !important;
         font-weight: 700 !important;
-        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.5) !important;
-        transition: all 0.2s ease !important;
+        letter-spacing: 0.02em !important;
+        box-shadow: 0 4px 16px rgba(99, 102, 241, 0.55), inset 0 1px 1px rgba(255, 255, 255, 0.3) !important;
+        transition: all 0.22s ease !important;
+        cursor: pointer !important;
     }
-    div[data-testid="stFileUploadDropzone"] button:hover {
+    [data-testid="stFileUploaderDropzone"] button:hover,
+    [data-testid="stFileUploadDropzone"] button:hover,
+    div[data-testid="stFileUploader"] section button:hover,
+    div[data-testid="stFileUploader"] button:hover {
         background: linear-gradient(135deg, #818cf8 0%, #a855f7 100%) !important;
         transform: translateY(-2px) !important;
-        box-shadow: 0 8px 22px rgba(99, 102, 241, 0.65) !important;
+        border-color: rgba(255, 255, 255, 0.55) !important;
+        box-shadow: 0 8px 24px rgba(99, 102, 241, 0.75), inset 0 1px 2px rgba(255, 255, 255, 0.45) !important;
     }
-    div[data-testid="stFileUploadDropzone"] small,
-    div[data-testid="stFileUploadDropzone"] span {
+    /* Dropzone Subtext & File Info */
+    [data-testid="stFileUploaderDropzone"] small,
+    [data-testid="stFileUploaderDropzone"] span,
+    [data-testid="stFileUploadDropzone"] small,
+    [data-testid="stFileUploadDropzone"] span,
+    div[data-testid="stFileUploader"] section small,
+    div[data-testid="stFileUploader"] section span {
         color: #cbd5e1 !important;
-        font-size: 0.80rem !important;
+        font-size: 0.82rem !important;
         font-weight: 500 !important;
     }
-    div[data-testid="stFileUploadDropzone"] svg {
-        fill: #a5b4fc !important;
-        color: #a5b4fc !important;
+    [data-testid="stFileUploaderDropzone"] svg,
+    [data-testid="stFileUploadDropzone"] svg,
+    div[data-testid="stFileUploader"] section svg {
+        fill: #818cf8 !important;
+        color: #818cf8 !important;
+    }
+    /* Uploaded File Pill inside File Uploader */
+    div[data-testid="stFileUploader"] ul,
+    div[data-testid="stFileUploaderFile"] {
+        background: rgba(18, 24, 42, 0.75) !important;
+        backdrop-filter: blur(14px) !important;
+        -webkit-backdrop-filter: blur(14px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 12px !important;
+        padding: 8px 12px !important;
+        margin-top: 8px !important;
     }
 
     /* Glass Radio Buttons (Indexing Range & Choice Pickers) */
-    div[data-testid="stRadio"] label:first-child {
+    div[data-testid="stRadio"] {
+        margin-top: 8px !important;
+        margin-bottom: 14px !important;
+    }
+    div[data-testid="stRadio"] label:first-child,
+    div[data-testid="stRadio"] > label {
         color: #a5b4fc !important;
         font-size: 0.82rem !important;
         font-weight: 700 !important;
-        letter-spacing: 0.04em !important;
+        letter-spacing: 0.05em !important;
         text-transform: uppercase !important;
         margin-bottom: 8px !important;
+        display: block !important;
     }
     div[data-testid="stRadio"] div[role="radiogroup"] {
-        background: rgba(18, 24, 42, 0.6) !important;
-        backdrop-filter: blur(16px) saturate(180%) !important;
-        -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(18, 24, 42, 0.65) 100%) !important;
+        backdrop-filter: blur(18px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
         border: 1px solid rgba(255, 255, 255, 0.12) !important;
         border-radius: 14px !important;
         padding: 8px 10px !important;
-        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.1) !important;
         display: flex !important;
         flex-direction: column !important;
         gap: 6px !important;
     }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label,
     div[data-testid="stRadio"] label[data-baseweb="radio"] {
-        background: rgba(255, 255, 255, 0.03) !important;
-        border: 1px solid rgba(255, 255, 255, 0.06) !important;
+        background: rgba(255, 255, 255, 0.035) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
         border-radius: 10px !important;
-        padding: 8px 12px !important;
+        padding: 9px 12px !important;
         margin: 0 !important;
         cursor: pointer !important;
-        transition: all 0.2s ease !important;
+        transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
     }
+    div[data-testid="stRadio"] div[role="radiogroup"] > label:hover,
     div[data-testid="stRadio"] label[data-baseweb="radio"]:hover {
-        background: rgba(99, 102, 241, 0.14) !important;
-        border-color: rgba(165, 180, 252, 0.35) !important;
+        background: rgba(99, 102, 241, 0.16) !important;
+        border-color: rgba(165, 180, 252, 0.4) !important;
+        transform: translateX(2px) !important;
     }
-    div[data-testid="stRadio"] label[data-baseweb="radio"] span {
+    div[data-testid="stRadio"] div[role="radiogroup"] > label span,
+    div[data-testid="stRadio"] label[data-baseweb="radio"] span,
+    div[data-testid="stRadio"] label[data-baseweb="radio"] p {
         color: #f1f5f9 !important;
         font-size: 0.88rem !important;
         font-weight: 500 !important;
     }
-    /* Radio Dot Glow */
-    div[data-testid="stRadio"] input[type="radio"]:checked + div {
+    /* Active / Checked Item highlight */
+    div[data-testid="stRadio"] label[data-baseweb="radio"]:has(input:checked) {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.22) 0%, rgba(168, 85, 247, 0.15) 100%) !important;
+        border-color: rgba(129, 140, 248, 0.6) !important;
+        box-shadow: 0 0 16px rgba(99, 102, 241, 0.3) !important;
+    }
+    /* Radio Dot Glow - Replaces default coral/red circle with vivid indigo gradient glow */
+    div[data-testid="stRadio"] input[type="radio"]:checked + div,
+    div[data-testid="stRadio"] div[aria-checked="true"] {
         border-color: #818cf8 !important;
         background-color: transparent !important;
     }
-    div[data-testid="stRadio"] input[type="radio"]:checked + div > div {
-        background: linear-gradient(135deg, #6366f1, #a855f7) !important;
-        box-shadow: 0 0 12px rgba(129, 140, 248, 0.9) !important;
+    div[data-testid="stRadio"] input[type="radio"]:checked + div > div,
+    div[data-testid="stRadio"] div[aria-checked="true"] > div,
+    div[data-testid="stRadio"] div[aria-checked="true"] svg {
+        background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%) !important;
+        fill: #818cf8 !important;
+        box-shadow: 0 0 14px rgba(129, 140, 248, 0.9) !important;
     }
 
     /* Sidebar Glass Header Card */
@@ -572,8 +635,107 @@ SHARED_CSS = """
     ::-webkit-scrollbar-thumb:hover {
         background: rgba(165, 180, 252, 0.45);
     }
+
+    /* Split-Screen Document Reader */
+    .book-page-viewer {
+        background: rgba(18, 24, 42, 0.70);
+        backdrop-filter: blur(20px) saturate(180%);
+        -webkit-backdrop-filter: blur(20px) saturate(180%);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+        height: 680px;
+        display: flex;
+        flex-direction: column;
+    }
+    .book-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 12px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.10);
+        margin-bottom: 12px;
+    }
+    .book-page-body {
+        flex: 1;
+        overflow-y: auto;
+        padding-right: 6px;
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 0.90rem;
+        line-height: 1.65;
+        color: #e2e8f0;
+        white-space: pre-wrap;
+    }
+
+    /* Persona Badge */
+    .persona-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 3px 10px;
+        border-radius: 9999px;
+        font-size: 0.74rem;
+        font-weight: 700;
+        background: rgba(99, 102, 241, 0.18);
+        border: 1px solid rgba(165, 180, 252, 0.35);
+        color: #c7d2fe;
+        margin-bottom: 6px;
+    }
+
+    /* Followup Suggestion Container */
+    .followup-box {
+        margin-top: 10px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px dashed rgba(165, 180, 252, 0.25);
+        border-radius: 12px;
+    }
 </style>
 """
+
+def render_audio_player(text: str, element_key: str):
+    """Renders a 1-click in-browser Speech Synthesis (TTS) reader."""
+    clean_text = text.replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\r", " ")[:600]
+    html_code = f"""
+    <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; margin-bottom: 6px;">
+        <button onclick="
+            window.speechSynthesis.cancel();
+            var utt = new SpeechSynthesisUtterance('{clean_text}');
+            utt.rate = 1.0;
+            utt.pitch = 1.0;
+            window.speechSynthesis.speak(utt);
+        " style="
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%);
+            border: 1px solid rgba(165, 180, 252, 0.35);
+            color: #c7d2fe;
+            border-radius: 8px;
+            padding: 4px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        " onmouseover="this.style.background='rgba(99, 102, 241, 0.45)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.25)'">
+            🔊 Listen to Explanation
+        </button>
+        <button onclick="window.speechSynthesis.cancel();" style="
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+            border-radius: 8px;
+            padding: 4px 10px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+        ">
+            ⏹️ Stop
+        </button>
+    </div>
+    """
+    st.components.v1.html(html_code, height=45)
 
 def init_app():
     """Initializes environment, state, styles, and enforces API key access gate across all pages."""
