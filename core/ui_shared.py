@@ -1,4 +1,9 @@
 import os
+import re
+import json
+import subprocess
+import tempfile
+import uuid
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -694,48 +699,283 @@ SHARED_CSS = """
 </style>
 """
 
+def clean_text_for_speech(text: str) -> str:
+    """Strips markdown formatting, citations, code blocks, and math for crystal clear speech."""
+    if not text:
+        return ""
+    t = re.sub(r'```.*?```', '', text, flags=re.DOTALL)
+    t = re.sub(r'`[^`]*`', '', t)
+    t = re.sub(r'#+\s*', '', t)
+    t = re.sub(r'\*\*([^*]+)\*\*', r'\1', t)
+    t = re.sub(r'\*([^*]+)\*', r'\1', t)
+    t = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', t)
+    t = re.sub(r'\[(?:Page|Source|Doc)[^\]]*\]', '', t, flags=re.IGNORECASE)
+    t = re.sub(r'<[^>]+>', '', t)
+    t = re.sub(r'[\r\n]+', ' ', t)
+    t = re.sub(r'\s+', ' ', t).strip()
+    return t[:1500]
+
+def text_to_speech_wav(text: str) -> bytes:
+    """Synthesizes high-fidelity WAV speech using Windows SAPI SpeechSynthesizer."""
+    clean = clean_text_for_speech(text)
+    if not clean:
+        return b""
+    safe_clean = clean.replace("'", "''")
+    tmp_wav = os.path.join(tempfile.gettempdir(), f"documind_tts_{uuid.uuid4().hex[:8]}.wav").replace("\\", "/")
+    ps1_path = os.path.join(tempfile.gettempdir(), f"documind_tts_{uuid.uuid4().hex[:8]}.ps1")
+    
+    ps_content = f"""
+Add-Type -AssemblyName System.Speech
+$synth = New-Object System.Speech.Synthesis.SpeechSynthesizer
+$synth.SetOutputToWaveFile("{tmp_wav}")
+$synth.Speak(@'
+{clean}
+'@)
+$synth.Dispose()
+"""
+    try:
+        with open(ps1_path, "w", encoding="utf-8") as f:
+            f.write(ps_content)
+        res = subprocess.run(
+            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", ps1_path],
+            capture_output=True,
+            timeout=8
+        )
+        if res.returncode == 0 and os.path.exists(tmp_wav):
+            with open(tmp_wav, "rb") as f:
+                data = f.read()
+            return data
+    except Exception:
+        pass
+    finally:
+        for p in (tmp_wav, ps1_path):
+            if os.path.exists(p):
+                try:
+                    os.remove(p)
+                except Exception:
+                    pass
+    return b""
+
 def render_audio_player(text: str, element_key: str):
-    """Renders a 1-click in-browser Speech Synthesis (TTS) reader."""
-    clean_text = text.replace("'", "\\'").replace('"', '\\"').replace("\n", " ").replace("\r", " ")[:600]
-    html_code = f"""
-    <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px; margin-bottom: 6px;">
-        <button onclick="
-            window.speechSynthesis.cancel();
-            var utt = new SpeechSynthesisUtterance('{clean_text}');
-            utt.rate = 1.0;
-            utt.pitch = 1.0;
-            window.speechSynthesis.speak(utt);
-        " style="
-            background: linear-gradient(135deg, rgba(99, 102, 241, 0.25) 0%, rgba(168, 85, 247, 0.25) 100%);
-            border: 1px solid rgba(165, 180, 252, 0.35);
-            color: #c7d2fe;
-            border-radius: 8px;
-            padding: 4px 12px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            transition: all 0.2s;
-        " onmouseover="this.style.background='rgba(99, 102, 241, 0.45)'" onmouseout="this.style.background='rgba(99, 102, 241, 0.25)'">
-            🔊 Listen to Explanation
-        </button>
-        <button onclick="window.speechSynthesis.cancel();" style="
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fca5a5;
-            border-radius: 8px;
-            padding: 4px 10px;
-            font-size: 0.78rem;
-            font-weight: 600;
-            cursor: pointer;
-        ">
-            ⏹️ Stop
-        </button>
-    </div>
-    """
-    st.components.v1.html(html_code, height=45)
+    """Renders a 1-click in-browser Speech Synthesis (TTS) reader and an offline HD voice player."""
+    clean_text = clean_text_for_speech(text)
+    if not clean_text:
+        return
+
+    json_payload = json.dumps(clean_text)
+
+    html_code = f"""<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body {{
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }}
+  .audio-bar {{
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 38px;
+  }}
+  .btn-listen {{
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(168, 85, 247, 0.35) 100%);
+    border: 1px solid rgba(165, 180, 252, 0.45);
+    color: #e0e7ff;
+    border-radius: 9999px;
+    padding: 5px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    user-select: none;
+  }}
+  .btn-listen:hover {{
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.6) 0%, rgba(168, 85, 247, 0.6) 100%);
+    border-color: rgba(255, 255, 255, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(99, 102, 241, 0.4);
+  }}
+  .btn-stop {{
+    background: rgba(239, 68, 68, 0.2);
+    border: 1px solid rgba(239, 68, 68, 0.45);
+    color: #fca5a5;
+    border-radius: 9999px;
+    padding: 5px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    transition: all 0.2s;
+    user-select: none;
+  }}
+  .btn-stop:hover {{
+    background: rgba(239, 68, 68, 0.35);
+  }}
+  .speech-badge {{
+    font-size: 0.72rem;
+    color: #94a3b8;
+    font-weight: 500;
+  }}
+</style>
+</head>
+<body>
+<div class="audio-bar">
+  <button id="btn-listen" class="btn-listen" onclick="handlePlay()">
+    <span id="btn-icon">🔊</span>
+    <span id="btn-label">Listen to Explanation</span>
+  </button>
+  <button id="btn-stop" class="btn-stop" onclick="handleStop()">
+    <span>⏹️</span>
+    <span>Stop</span>
+  </button>
+  <span id="speech-badge" class="speech-badge"></span>
+</div>
+
+<script>
+const SPEECH_TEXT = {json_payload};
+
+function getSpeechSynth() {{
+  try {{
+    if (window.speechSynthesis) return window.speechSynthesis;
+  }} catch(e) {{}}
+  try {{
+    if (window.parent && window.parent.speechSynthesis) return window.parent.speechSynthesis;
+  }} catch(e) {{}}
+  try {{
+    if (window.top && window.top.speechSynthesis) return window.top.speechSynthesis;
+  }} catch(e) {{}}
+  return null;
+}}
+
+let keepAlive = null;
+
+function handlePlay() {{
+  const synth = getSpeechSynth();
+  if (!synth) {{
+    alert("Speech Synthesis is not supported in this browser. Please use Chrome, Edge, or Safari.");
+    return;
+  }}
+
+  const btnListen = document.getElementById("btn-listen");
+  const btnStop = document.getElementById("btn-stop");
+  const btnIcon = document.getElementById("btn-icon");
+  const btnLabel = document.getElementById("btn-label");
+  const badge = document.getElementById("speech-badge");
+
+  if (synth.speaking && !synth.paused) {{
+    synth.pause();
+    btnIcon.textContent = "▶️";
+    btnLabel.textContent = "Resume";
+    badge.textContent = "(Paused)";
+    return;
+  }}
+
+  if (synth.paused) {{
+    synth.resume();
+    btnIcon.textContent = "⏸️";
+    btnLabel.textContent = "Pause";
+    badge.textContent = "Speaking...";
+    return;
+  }}
+
+  synth.cancel();
+  if (synth.paused) synth.resume();
+
+  const utterance = new SpeechSynthesisUtterance(SPEECH_TEXT);
+  utterance.rate = 1.0;
+  utterance.pitch = 1.0;
+  utterance.lang = "en-US";
+
+  try {{
+    const voices = synth.getVoices() || [];
+    const bestVoice = voices.find(v => v.lang.startsWith("en") && (v.name.includes("Natural") || v.name.includes("Google") || v.name.includes("Online") || v.name.includes("David") || v.name.includes("Zira")));
+    if (bestVoice) utterance.voice = bestVoice;
+  }} catch(e) {{}}
+
+  window._activeUtterance = utterance;
+
+  utterance.onstart = function() {{
+    btnIcon.textContent = "⏸️";
+    btnLabel.textContent = "Pause";
+    btnStop.style.display = "inline-flex";
+    btnListen.style.borderColor = "#34d399";
+    btnListen.style.background = "linear-gradient(135deg, rgba(16, 185, 129, 0.45) 0%, rgba(14, 165, 233, 0.45) 100%)";
+    badge.textContent = "Speaking...";
+  }};
+
+  function resetUI() {{
+    if (keepAlive) {{ clearInterval(keepAlive); keepAlive = null; }}
+    btnIcon.textContent = "🔊";
+    btnLabel.textContent = "Listen to Explanation";
+    btnStop.style.display = "none";
+    btnListen.style.borderColor = "rgba(165, 180, 252, 0.45)";
+    btnListen.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(168, 85, 247, 0.35) 100%)";
+    badge.textContent = "";
+    window._activeUtterance = null;
+  }}
+
+  utterance.onend = resetUI;
+  utterance.onerror = resetUI;
+
+  synth.speak(utterance);
+
+  keepAlive = setInterval(() => {{
+    if (!synth.speaking) {{
+      clearInterval(keepAlive);
+      keepAlive = null;
+    }} else if (!synth.paused) {{
+      synth.pause();
+      synth.resume();
+    }}
+  }}, 10000);
+}}
+
+function handleStop() {{
+  const synth = getSpeechSynth();
+  if (synth) synth.cancel();
+  const btnIcon = document.getElementById("btn-icon");
+  const btnLabel = document.getElementById("btn-label");
+  const btnStop = document.getElementById("btn-stop");
+  const btnListen = document.getElementById("btn-listen");
+  const badge = document.getElementById("speech-badge");
+  btnIcon.textContent = "🔊";
+  btnLabel.textContent = "Listen to Explanation";
+  btnStop.style.display = "none";
+  btnListen.style.borderColor = "rgba(165, 180, 252, 0.45)";
+  btnListen.style.background = "linear-gradient(135deg, rgba(99, 102, 241, 0.35) 0%, rgba(168, 85, 247, 0.35) 100%)";
+  badge.textContent = "";
+  window._activeUtterance = null;
+}}
+</script>
+</body>
+</html>
+"""
+    col1, col2 = st.columns([3, 2])
+    with col1:
+        st.components.v1.html(html_code, height=44)
+    with col2:
+        with st.popover("🎙️ HD Voice Player", use_container_width=True):
+            st.caption("Generate a high-fidelity offline voice track with speed controls & scrub bar.")
+            wav_key = f"wav_{element_key}"
+            if st.button("⚡ Generate Audio (.wav)", key=f"btn_wav_{element_key}", use_container_width=True):
+                with st.spinner("Synthesizing voice audio..."):
+                    audio_bytes = text_to_speech_wav(clean_text)
+                    if audio_bytes:
+                        st.session_state[wav_key] = audio_bytes
+                    else:
+                        st.error("Audio synthesis unavailable.")
+            if st.session_state.get(wav_key):
+                st.audio(st.session_state[wav_key], format="audio/wav")
 
 def init_app():
     """Initializes environment, state, styles, and enforces API key access gate across all pages."""
