@@ -1,0 +1,325 @@
+{
+  "server_status": {
+    "main_status_code": 200,
+    "main_content_type": "text/html; charset=utf-8",
+    "health_status_code": 200,
+    "health_response": "ok",
+    "responsive": true
+  },
+  "codebase_inspection": {
+    "pages/3_\ud83d\udcdd_Exam_&_Research.py": {
+      "DocuMind_Exam_Paper.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Exam_Paper.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Research_Dossier.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Research_Dossier.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      }
+    },
+    "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py": {
+      "DocuMind_Mind_Map.mmd": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Mind_Map.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Cheat_Sheet.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Cheat_Sheet.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Comparison.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Comparison.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      }
+    },
+    "pages/5_\ud83d\udce5_Export_&_Anki.py": {
+      "DocuMind_Flashcards.csv": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Flashcards.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Study_Notes.html": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Study_Notes.txt": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      },
+      "DocuMind_Study_Notes.md": {
+        "key_present": true,
+        "filename_present": true,
+        "mime_present": true,
+        "verified": true
+      }
+    }
+  },
+  "features": [
+    {
+      "page": "pages/3_\ud83d\udcdd_Exam_&_Research.py",
+      "feature_name": "Academic Exam Paper (.md)",
+      "filename": "DocuMind_Exam_Paper.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 9115,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_exam_sections": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/3_\ud83d\udcdd_Exam_&_Research.py",
+      "feature_name": "Academic Exam Paper (.txt)",
+      "filename": "DocuMind_Exam_Paper.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 9115,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "content_matches_md": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/3_\ud83d\udcdd_Exam_&_Research.py",
+      "feature_name": "Multi-Hop Research Dossier (.md)",
+      "filename": "DocuMind_Research_Dossier.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 6949,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_dossier_structure": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/3_\ud83d\udcdd_Exam_&_Research.py",
+      "feature_name": "Multi-Hop Research Dossier (.txt)",
+      "filename": "DocuMind_Research_Dossier.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 6949,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "content_matches_md": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Concept Mind Map (.mmd)",
+      "filename": "DocuMind_Mind_Map.mmd",
+      "extension": ".mmd",
+      "mime_type": "text/plain",
+      "size_bytes": 1357,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "valid_mermaid_syntax": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Concept Mind Map as Markdown (.md)",
+      "filename": "DocuMind_Mind_Map.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 1384,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "contains_mermaid_block": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Chapter Cheat Sheet (.md)",
+      "filename": "DocuMind_Cheat_Sheet.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 2245,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_cheat_sheet_content": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Chapter Cheat Sheet (.txt)",
+      "filename": "DocuMind_Cheat_Sheet.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 2245,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "content_matches_md": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Cross-Comparison Matrix (.md)",
+      "filename": "DocuMind_Comparison.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 3882,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_matrix_content": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/4_\ud83e\udde0_Mind_Map_&_Summary.py",
+      "feature_name": "Cross-Comparison Matrix (.txt)",
+      "filename": "DocuMind_Comparison.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 3882,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "content_matches_md": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/5_\ud83d\udce5_Export_&_Anki.py",
+      "feature_name": "Anki Spaced Repetition Flashcards (.csv)",
+      "filename": "DocuMind_Flashcards.csv",
+      "extension": ".csv",
+      "mime_type": "text/csv",
+      "size_bytes": 689,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "semicolon_delimited": true,
+        "excel_compatible_csv": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/5_\ud83d\udce5_Export_&_Anki.py",
+      "feature_name": "Flashcards for Notepad (.txt)",
+      "filename": "DocuMind_Flashcards.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 689,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_flashcards_text": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/5_\ud83d\udce5_Export_&_Anki.py",
+      "feature_name": "Study Notes Web Document (.html)",
+      "filename": "DocuMind_Study_Notes.html",
+      "extension": ".html",
+      "mime_type": "text/html",
+      "size_bytes": 1686,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "valid_doctype": true,
+        "has_qa_card": true,
+        "has_css_style": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/5_\ud83d\udce5_Export_&_Anki.py",
+      "feature_name": "Study Notes Text File (.txt)",
+      "filename": "DocuMind_Study_Notes.txt",
+      "extension": ".txt",
+      "mime_type": "text/plain",
+      "size_bytes": 572,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_questions": true
+      },
+      "status": "PASS"
+    },
+    {
+      "page": "pages/5_\ud83d\udce5_Export_&_Anki.py",
+      "feature_name": "Study Notes Markdown Document (.md)",
+      "filename": "DocuMind_Study_Notes.md",
+      "extension": ".md",
+      "mime_type": "text/markdown",
+      "size_bytes": 572,
+      "is_bytes": true,
+      "utf8_valid": true,
+      "extra_validations": {
+        "has_content": true
+      },
+      "status": "PASS"
+    }
+  ],
+  "overall_verdict": "ALL_PASS",
+  "total_count": 15,
+  "passed_count": 15
+}

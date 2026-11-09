@@ -48,6 +48,25 @@ else:
 
         if st.session_state.get("active_mind_map"):
             st.markdown("---")
+            mm_d1, mm_d2 = st.columns([1, 1])
+            with mm_d1:
+                st.download_button(
+                    label="📥 Download Mind Map (.mmd)",
+                    data=st.session_state.active_mind_map['mermaid'].encode("utf-8"),
+                    file_name="DocuMind_Mind_Map.mmd",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="dl_mm_mmd"
+                )
+            with mm_d2:
+                st.download_button(
+                    label="📄 Download as Markdown (.md)",
+                    data=f"# Mind Map\n\n```mermaid\n{st.session_state.active_mind_map['mermaid']}\n```".encode("utf-8"),
+                    file_name="DocuMind_Mind_Map.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                    key="dl_mm_md"
+                )
             st.markdown(f"```mermaid\n{st.session_state.active_mind_map['mermaid']}\n```")
 
     with sub2:
@@ -69,6 +88,25 @@ else:
 
         if st.session_state.get("active_summary"):
             st.markdown("---")
+            s_d1, s_d2 = st.columns([1, 1])
+            with s_d1:
+                st.download_button(
+                    label="📥 Download Cheat Sheet (.md)",
+                    data=st.session_state.active_summary["content"].encode("utf-8"),
+                    file_name="DocuMind_Cheat_Sheet.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                    key="dl_sum_md"
+                )
+            with s_d2:
+                st.download_button(
+                    label="📄 Download Cheat Sheet (.txt)",
+                    data=st.session_state.active_summary["content"].encode("utf-8"),
+                    file_name="DocuMind_Cheat_Sheet.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="dl_sum_txt"
+                )
             st.markdown(st.session_state.active_summary["content"])
 
     with sub3:
@@ -90,4 +128,23 @@ else:
 
         if st.session_state.get("active_comparison"):
             st.markdown("---")
+            c_d1, c_d2 = st.columns([1, 1])
+            with c_d1:
+                st.download_button(
+                    label="📥 Download Comparison Matrix (.md)",
+                    data=st.session_state.active_comparison["content"].encode("utf-8"),
+                    file_name="DocuMind_Comparison.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                    key="dl_cmp_md"
+                )
+            with c_d2:
+                st.download_button(
+                    label="📄 Download Comparison Matrix (.txt)",
+                    data=st.session_state.active_comparison["content"].encode("utf-8"),
+                    file_name="DocuMind_Comparison.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="dl_cmp_txt"
+                )
             st.markdown(st.session_state.active_comparison["content"])

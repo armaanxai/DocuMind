@@ -44,6 +44,25 @@ else:
 
         if st.session_state.get("active_exam_paper"):
             st.markdown("---")
+            d_col_a, d_col_b = st.columns([1, 1])
+            with d_col_a:
+                st.download_button(
+                    label="📥 Download Exam Paper (.md)",
+                    data=st.session_state.active_exam_paper["content"].encode("utf-8"),
+                    file_name="DocuMind_Exam_Paper.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                    key="dl_exam_md"
+                )
+            with d_col_b:
+                st.download_button(
+                    label="📄 Download Exam Paper (.txt)",
+                    data=st.session_state.active_exam_paper["content"].encode("utf-8"),
+                    file_name="DocuMind_Exam_Paper.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="dl_exam_txt"
+                )
             st.markdown(st.session_state.active_exam_paper["content"])
 
     with exam_sub2:
@@ -63,4 +82,23 @@ else:
 
         if st.session_state.get("active_dossier"):
             st.markdown("---")
+            rd_col_a, rd_col_b = st.columns([1, 1])
+            with rd_col_a:
+                st.download_button(
+                    label="📥 Download Research Dossier (.md)",
+                    data=st.session_state.active_dossier["content"].encode("utf-8"),
+                    file_name="DocuMind_Research_Dossier.md",
+                    mime="text/markdown",
+                    use_container_width=True,
+                    key="dl_dossier_md"
+                )
+            with rd_col_b:
+                st.download_button(
+                    label="📄 Download Research Dossier (.txt)",
+                    data=st.session_state.active_dossier["content"].encode("utf-8"),
+                    file_name="DocuMind_Research_Dossier.txt",
+                    mime="text/plain",
+                    use_container_width=True,
+                    key="dl_dossier_txt"
+                )
             st.markdown(st.session_state.active_dossier["content"])
