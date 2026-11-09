@@ -136,3 +136,6 @@ class VectorStore:
         self.tfidf_vectorizer = None
         self.tfidf_matrix = None
         self.neural_embeddings = None
+
+    # Convenient alias for similarity_search
+    search = similarity_search

@@ -240,6 +240,24 @@ with col_ws1:
     if st.button("👉 Launch Export Suite", use_container_width=True, key="dash_btn_export"):
         st.switch_page("pages/5_📥_Export_&_Anki.py")
 
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    st.markdown("""
+    <div class="feature-card" style="border-color: rgba(99, 102, 241, 0.45); background: linear-gradient(135deg, rgba(99, 102, 241, 0.08) 0%, rgba(18, 24, 42, 0.8) 100%);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="font-size: 1.25rem; font-weight: 700; color: #ffffff;">
+                🤖 VeritasVoice: Autonomous Agent Voice Copilot
+            </div>
+            <span class="pill-tag" style="background: rgba(99, 102, 241, 0.25); border-color: rgba(165, 180, 252, 0.4); color: #c7d2fe;">NEW • FLAGSHIP</span>
+        </div>
+        <div style="color: #cbd5e1; font-size: 0.90rem; margin-bottom: 12px; line-height: 1.5;">
+            Ensemble of 4 autonomous agents (Planner, Researcher, Adversarial Critic, Voice Narrator) synthesizing verified research dossiers with dynamic Truth Index scoring & spoken voice audio debriefs.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    if st.button("🚀 Launch Autonomous Agent Voice Copilot", use_container_width=True, key="dash_btn_agent_copilot"):
+        st.switch_page("pages/6_🤖_Agent_Voice_Copilot.py")
+
 with col_ws2:
     st.markdown("""
     <div class="feature-card">
